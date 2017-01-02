@@ -17,7 +17,10 @@ setup: $(wildcard MODELS)
 migration: $(wildcard MODELS)
 \tcrystal run src/utils/migration.cr
 
-build: src/$PROJNAME$.cr
+debug: src/$PROJNAME$.cr
+\tcrystal build src/$PROJNAME$.cr -o bin/server
+
+release: src/$PROJNAME$.cr
 \tcrystal build src/$PROJNAME$.cr --release -o bin/server
 
 run: build
@@ -29,8 +32,31 @@ clean:
 \trm -rf .shards
 
 help:
-\techo "HELP!"
-
+\tprintf "\\
+\t[Help] Topaz with Kemal \\n\\
+\t\\n\\
+\t> make setup \\n\\
+\t  Setup the project (Create tables) \\n\\
+\t  Call this first after create the project or add tables \\n\\
+\t\\n\\
+\t> make migration \\n\\
+\t  Migrate tables, execute when you add/remove columns to/from defined tables \\n\\
+\t\\n\\
+\t> make debug \\n\\
+\t  Debug build the project \\n\\
+\t\\n\\
+\t> make release \\n\\
+\t  Release build the project \\n\\
+\t\\n\\
+\t> make run \\n\\
+\t  Start Kemal server \\n\\
+\t\\n\\
+\t> make clean \\n\\
+\t  Clean project \\n\\
+\t\\n\\
+\t> make help -s \\n\\
+\t  Show this help \\n\\
+\t\\n"
 MAKEFILE
 
 sample_cr = <<-SAMPLE
@@ -170,7 +196,8 @@ end
 def add_file filename, contents
   open filename, "w" do |file|
     file.write(contents)
-  end  
+  end
+  log "Added #{filename}"
 end
 
 command_check
@@ -219,5 +246,8 @@ Dir.chdir install_dir do
 
     add_file "src/#{project_name}.cr",
              server_cr.gsub(tag("PROJNAME"), project_name).gsub(tag("DB"), database)
+
+    exec_cmd "make setup"
+    exec_cmd "make help -s"
   end
 end
