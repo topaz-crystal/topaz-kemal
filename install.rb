@@ -5,7 +5,32 @@ require "uri"
 require "open3"
 require "yaml"
 
-require File.expand_path("../Makefile", __FILE__)
+makefile = <<-MAKEFILE
+
+MODELS = src/models/*.cr
+
+setup: $(wildcard MODELS)
+\tcrystal deps
+\tcrystal run src/utils/setup.cr
+
+migration: $(wildcard MODELS)
+\tcrystal run src/utils/migration.cr
+
+build: src/$PROJNAME$.cr
+\tcrystal build src/$PROJNAME$.cr --release -o bin/server
+
+run: build
+\tbin/server
+
+clean:
+\trm -rf shard.lock
+\trm -rf lib
+\trm -rf .shards
+
+help:
+\techo "HELP!"
+
+MAKEFILE
 
 LOG = "\e[32m[Topaz x Kemal]\e[0m "
 
@@ -76,7 +101,7 @@ Dir.chdir install_dir do
     Dir.mkdir "src/utils"
 
     open "Makefile", "w" do |file|
-      file.write(@makefile.gsub(tag("PROJNAME"), project_name))
+      file.write(makefile.gsub(tag("PROJNAME"), project_name))
     end
   end
 end
